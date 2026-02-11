@@ -44,6 +44,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-17-jdk wget
           sudo apt remove openjdk-11* -y
+          
+          # Set Java 17 as default for subsequent steps
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+          echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
       # Restore "latest available" cache for this prefix
       - name: Restore Maven cache
