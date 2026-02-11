@@ -49,6 +49,12 @@ jobs:
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
           echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
+      - name: Download All Arrow Jar Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: arrow-jars-centos-7-5c9f5d50b11a02c87006826ece1e5ec17248b1ae
+          path: /root/.m2/repository/org/apache/arrow/
+
       # Restore "latest available" cache for this prefix
       - name: Restore Maven cache
         id: m2-restore
