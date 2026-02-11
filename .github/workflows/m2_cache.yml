@@ -1,0 +1,86 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Cache M2 Repo (Weekly)
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - "pom.xml"
+      - "**/pom.xml"
+      - ".mvn/**"
+      - "build/mvn"
+
+jobs:
+  warm-m2:
+    runs-on: ubuntu-22.04
+
+    env:
+      MVN_CMD: 'build/mvn -ntp'
+
+
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup java
+        run: |
+          yum update -y && yum install -y java-17-openjdk-devel wget
+
+      # Restore "latest available" cache for this prefix
+      - name: Restore Maven cache
+        id: m2-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: /root/.m2/repository
+          # Unique key per week + pom hash to refresh when deps change
+          key: m2-warm-${{ hashFiles('**/pom.xml', '.mvn/wrapper/maven-wrapper.properties', 'build/mvn') }}
+
+      - name: Warm cache (download/compile)
+        shell: bash
+        run: |
+          cd $GITHUB_WORKSPACE/
+          
+          echo "=== Java runtime ==="
+          java -version
+
+          echo "=== Java compiler ==="
+          javac -version
+
+          echo "=== Maven ==="
+          mvn -version
+
+          $MVN_CMD -Pjava-17,spark-3.5,backends-velox,hadoop-3.3,spark-ut \
+            -Piceberg,iceberg-test,delta,paimon \
+            clean test-compile
+
+          $MVN_CMD -Pjava-17,spark-3.4,backends-velox,hadoop-3.3,spark-ut \
+            -Piceberg,iceberg-test,delta,paimon \
+            clean test-compile
+
+          $MVN_CMD -Pjava-17,spark-3.3,backends-velox,hadoop-3.3,spark-ut \
+            -Piceberg,delta,paimon \
+            clean test-compile
+
+      - name: Save Maven cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /root/.m2/repository
+          key: m2-warm-${{ hashFiles('**/pom.xml', '.mvn/wrapper/maven-wrapper.properties', 'build/mvn') }}
