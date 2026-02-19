@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      MVN_CMD: "build/mvn -ntp -pl !gluten-arrow"
+      MVN_CMD: "build/mvn -ntp -pl !gluten-arrow -P!with-arrow"
 
 
 
