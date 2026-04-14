@@ -132,8 +132,4 @@ class GlutenCSVLegacyTimeParserSuite extends GlutenCSVSuite {
   override def sparkConf: SparkConf =
     super.sparkConf
       .set(SQLConf.LEGACY_TIME_PARSER_POLICY, "legacy")
-
-  // The source CSVLegacyTimeParserSuite exclude the test
-  override def excluded: Seq[String] =
-    Seq("Write timestamps correctly in ISO8601 format by default")
 }
