@@ -28,7 +28,7 @@ import org.apache.gluten.extension.columnar.transition.{Convention, ConventionFu
 import org.apache.gluten.sql.shims.SparkShimLoader
 import org.apache.gluten.substrait.rel.LocalFilesNode
 import org.apache.gluten.substrait.rel.LocalFilesNode.ReadFileFormat
-import org.apache.gluten.substrait.rel.LocalFilesNode.ReadFileFormat.{DwrfReadFormat, OrcReadFormat, ParquetReadFormat}
+import org.apache.gluten.substrait.rel.LocalFilesNode.ReadFileFormat.{DwrfReadFormat, OrcReadFormat, ParquetReadFormat, TextReadFormat}
 import org.apache.gluten.utils._
 
 import org.apache.spark.sql.catalyst.catalog.BucketSpec
@@ -190,6 +190,13 @@ object VeloxBackendSettings extends BackendSettingsApi {
             validateTypes(fieldTypeValidator, fields)
               .orElse(validateTypes(schemaTypeValidator, dataSchema.fields))
           }
+        case TextReadFormat =>
+          if (!VeloxConfig.get.veloxTextScanEnabled) {
+            Some(
+              s"Velox text/CSV scan is turned off, ${VeloxConfig.VELOX_TEXT_SCAN_ENABLED.key}")
+          } else {
+            None
+          }
         case _ => Some(s"Unsupported file format $format.")
       }
     }
@@ -291,6 +298,8 @@ object VeloxBackendSettings extends BackendSettingsApi {
       case "OrcScan" => ReadFileFormat.OrcReadFormat
       case "ParquetScan" => ReadFileFormat.ParquetReadFormat
       case "DwrfScan" => ReadFileFormat.DwrfReadFormat
+      // if Spark DataSource V2 supports CSV add: case "CSVFileFormat" => ReadFileFormat.TextReadFormat
+      // case "CSVScan" => ReadFileFormat.TextReadFormat
       case _ => ReadFileFormat.UnknownFormat
     }
   }

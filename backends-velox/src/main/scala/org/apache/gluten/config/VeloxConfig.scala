@@ -77,6 +77,9 @@ class VeloxConfig(conf: SQLConf) extends GlutenConfig(conf) {
   def veloxOrcScanEnabled: Boolean =
     getConf(VELOX_ORC_SCAN_ENABLED)
 
+  def veloxTextScanEnabled: Boolean =
+    getConf(VELOX_TEXT_SCAN_ENABLED)
+
   def floatingPointMode: String = getConf(FLOATING_POINT_MODE)
 
   def enableRewriteCastArrayToString: Boolean =
@@ -602,6 +605,12 @@ object VeloxConfig extends ConfigRegistry {
       .doc("Enable velox orc scan. If disabled, vanilla spark orc scan will be used.")
       .booleanConf
       .createWithDefault(true)
+
+  val VELOX_TEXT_SCAN_ENABLED =
+    buildConf("spark.gluten.sql.columnar.backend.velox.text.scan.enabled")
+      .doc("Enable velox text/CSV scan. If disabled, vanilla spark CSV scan will be used.")
+      .booleanConf
+      .createWithDefault(false)
 
   val CAST_FROM_VARCHAR_ADD_TRIM_NODE =
     buildConf("spark.gluten.velox.castFromVarcharAddTrimNode")
